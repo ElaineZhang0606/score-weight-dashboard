@@ -1,0 +1,4 @@
+outputs/
+.DS_Store
+*.inspect.ndjson
+~$*
