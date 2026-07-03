@@ -65,7 +65,13 @@
           <div class="panel">
             <div class="panel-title">
               <h2>日期筛选</h2>
-              <button class="ghost-button" type="button" id="resetDateRange">全区间</button>
+              <div class="title-actions">
+                <details class="info-popover">
+                  <summary aria-label="日期筛选统计口径">i</summary>
+                  <p>筛选 CSV 中识别到的日期列，所有图表、表格和明细都会只使用开始日期到结束日期之间的有效样本。</p>
+                </details>
+                <button class="ghost-button" type="button" id="resetDateRange">全区间</button>
+              </div>
             </div>
             <div class="date-filter">
               <label>
@@ -82,6 +88,10 @@
           <div class="panel">
             <div class="panel-title">
               <h2>收益周期</h2>
+              <details class="info-popover">
+                <summary aria-label="收益周期统计口径">i</summary>
+                <p>系统自动识别 excess_return_2d、excess_return_5d、excess_return_Xd 等收益列。切换后，所有收益统计和有效样本数按当前收益列重新计算。</p>
+              </details>
             </div>
             <div class="select-filter">
               <label>
@@ -94,7 +104,13 @@
           <div class="panel">
             <div class="panel-title">
               <h2>维度权重</h2>
-              <button class="ghost-button" type="button" id="resetWeights">等权</button>
+              <div class="title-actions">
+                <details class="info-popover">
+                  <summary aria-label="维度权重统计口径">i</summary>
+                  <p>未调整权重时，调整后分直接等于原始 score 列。用户改动任意权重后，调整后分才按各维度分数乘以权重重新计算。</p>
+                </details>
+                <button class="ghost-button" type="button" id="resetWeights">等权</button>
+              </div>
             </div>
             <div class="weight-list" id="weightList"></div>
           </div>
@@ -104,9 +120,15 @@
           <div class="panel chart-panel">
             <div class="panel-title">
               <h2>分组超额收益对比</h2>
-              <div class="legend">
-                <span><i class="legend-dot base"></i>原始分</span>
-                <span><i class="legend-dot adjusted"></i>调整后</span>
+              <div class="title-actions">
+                <details class="info-popover wide">
+                  <summary aria-label="分组超额收益对比统计口径">i</summary>
+                  <p>先剔除当前收益周期缺失样本，再在每个日期内按分位阈值分 5 组或 10 组，G1 为低分组，最高组为高分组。阈值上的同分样本保留在同一组。</p>
+                </details>
+                <div class="legend">
+                  <span><i class="legend-dot base"></i>原始分</span>
+                  <span><i class="legend-dot adjusted"></i>调整后</span>
+                </div>
               </div>
             </div>
             <div class="chart-wrap">
@@ -132,7 +154,13 @@
           <div class="panel">
             <div class="panel-title">
               <h2>分组数据表</h2>
-              <button class="ghost-button" type="button" id="downloadTable">导出结果</button>
+              <div class="title-actions">
+                <details class="info-popover wide">
+                  <summary aria-label="分组数据表统计口径">i</summary>
+                  <p>展示每个分组的原始分收益、调整后收益、两者差值、样本数和平均分。调整后-原始分为正时表示调整后该组收益更高。</p>
+                </details>
+                <button class="ghost-button" type="button" id="downloadTable">导出结果</button>
+              </div>
             </div>
             <div class="table-wrap">
               <table>
@@ -156,7 +184,13 @@
           <div class="panel">
             <div class="panel-title">
               <h2>各维度评分分组收益</h2>
-              <div class="legend compact-legend" id="dimensionLegend"></div>
+              <div class="title-actions">
+                <details class="info-popover wide">
+                  <summary aria-label="各维度评分分组收益统计口径">i</summary>
+                  <p>每个维度独立分组，口径同主图：每个日期内按该维度分数做分位分组，G1 为低分组，最高组为高分组。该看板不受权重调整影响。</p>
+                </details>
+                <div class="legend compact-legend" id="dimensionLegend"></div>
+              </div>
             </div>
             <div class="chart-wrap dimension-chart-wrap">
               <canvas id="dimensionChart" width="1200" height="560"></canvas>
@@ -172,7 +206,13 @@
           <div class="panel">
             <div class="panel-title">
               <h2>明细预览</h2>
-              <span class="muted" id="previewCaption">前 80 行，按调整后分数从高到低</span>
+              <div class="title-actions">
+                <details class="info-popover wide">
+                  <summary aria-label="明细预览统计口径">i</summary>
+                  <p>默认展示当前日期和收益周期筛选后的前 80 行，按调整后分数倒序。点击图表柱子后展示对应组内股票；点击表头可按列正序或倒序排序。</p>
+                </details>
+                <span class="muted" id="previewCaption">前 80 行，按调整后分数从高到低</span>
+              </div>
             </div>
             <div class="table-wrap compact">
               <table>
@@ -185,6 +225,6 @@
       </section>
     </main>
 
-    <script src="./dashboard.js?v=20260703p"></script>
+    <script src="./dashboard.js?v=20260703q"></script>
   </body>
 </html>
