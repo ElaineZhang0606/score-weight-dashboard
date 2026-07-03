@@ -157,12 +157,20 @@ h2 {
   border-bottom: 1px solid var(--line);
 }
 
+.title-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .title-actions {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
   min-width: 0;
+  margin-left: auto;
 }
 
 .info-popover {
@@ -193,7 +201,7 @@ h2 {
 .info-popover p {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 0;
   z-index: 8;
   width: 280px;
   margin: 0;
