@@ -11,7 +11,7 @@
       <section class="topbar">
         <div>
           <h1>研报评分权重回测</h1>
-          <p>上传含维度分数与 5d 超额收益的 CSV，调整权重并比较原始分组与新权重分组表现。</p>
+          <p>上传含维度分数与多周期超额收益的 CSV，切换收益周期、筛选日期，并比较原始分组与新权重分组表现。</p>
         </div>
         <label class="upload-button" for="csvInput">
           <span>上传 CSV</span>
@@ -22,7 +22,7 @@
       <section class="status-band" id="emptyState">
         <div>
           <strong>等待数据</strong>
-          <span>支持列名形如 exp_diff_score、tech_score、certainty_score；收益列默认识别 excess_return_5d。</span>
+          <span>支持维度列如 exp_diff_score、tech_score、certainty_score；收益列可为 excess_return_2d、excess_return_5d 或 excess_return_Xd。</span>
         </div>
       </section>
 
