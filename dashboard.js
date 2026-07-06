@@ -19,8 +19,10 @@ const state = {
   dimensionRows: [],
   scoredRows: [],
   groups: { base: [], adjusted: [] },
-  selectedPreview: null,
-  previewSort: null,
+  activeTab: "group",
+  selectedGroupPreview: null,
+  selectedDimensionPreview: null,
+  previewSorts: { group: null, dimension: null },
   chartBars: [],
   dimensionChartBars: [],
 };
@@ -44,13 +46,24 @@ const els = {
   dimensionBody: document.getElementById("dimensionBody"),
   dimensionLegend: document.getElementById("dimensionLegend"),
   dimensionChart: document.getElementById("dimensionChart"),
-  previewHead: document.getElementById("previewHead"),
-  previewBody: document.getElementById("previewBody"),
+  tabButtons: document.querySelectorAll("[data-tab-target]"),
+  tabPanels: document.querySelectorAll("[data-tab-panel]"),
+  previews: {
+    group: {
+      head: document.getElementById("groupPreviewHead"),
+      body: document.getElementById("groupPreviewBody"),
+      caption: document.getElementById("groupPreviewCaption"),
+    },
+    dimension: {
+      head: document.getElementById("dimensionPreviewHead"),
+      body: document.getElementById("dimensionPreviewBody"),
+      caption: document.getElementById("dimensionPreviewCaption"),
+    },
+  },
   baseSpread: document.getElementById("baseSpread"),
   adjustedSpread: document.getElementById("adjustedSpread"),
   topGroupCount: document.getElementById("topGroupCount"),
   downloadTable: document.getElementById("downloadTable"),
-  previewCaption: document.getElementById("previewCaption"),
   chart: document.getElementById("returnChart"),
 };
 
@@ -66,9 +79,13 @@ document.querySelectorAll("[data-groups]").forEach((button) => {
     document.querySelectorAll("[data-groups]").forEach((item) => item.classList.remove("is-active"));
     button.classList.add("is-active");
     state.groupCount = Number(button.dataset.groups);
-    state.selectedPreview = null;
+    clearPreviewSelections();
     recalculate();
   });
+});
+
+els.tabButtons.forEach((button) => {
+  button.addEventListener("click", () => switchAnalysisTab(button.dataset.tabTarget));
 });
 
 els.resetWeights.addEventListener("click", () => {
@@ -84,7 +101,7 @@ els.resetWeights.addEventListener("click", () => {
   input.addEventListener("change", () => {
     state.filterStart = els.startDate.value;
     state.filterEnd = els.endDate.value;
-    state.selectedPreview = null;
+    clearPreviewSelections();
     recalculate();
   });
 });
@@ -93,13 +110,13 @@ els.resetDateRange.addEventListener("click", () => {
   state.filterStart = state.dateMin;
   state.filterEnd = state.dateMax;
   renderDateControls();
-  state.selectedPreview = null;
+  clearPreviewSelections();
   recalculate();
 });
 
 els.returnSelector.addEventListener("change", () => {
   state.returnColumn = els.returnSelector.value;
-  state.selectedPreview = null;
+  clearPreviewSelections();
   renderMeta();
   recalculate();
 });
@@ -128,20 +145,18 @@ els.downloadTable.addEventListener("click", () => {
 els.chart.addEventListener("click", (event) => {
   const bar = hitTestChartBar(event);
   if (!bar) {
-    state.selectedPreview = null;
-    renderPreview(state.scoredRows);
+    state.selectedGroupPreview = null;
+    renderGroupPreview();
     drawChart(state.resultRows);
-    drawDimensionChart();
     return;
   }
-  state.selectedPreview = {
+  state.selectedGroupPreview = {
     series: bar.series,
     groupIndex: bar.groupIndex,
     label: bar.label,
   };
-  renderSelectedPreview();
+  renderGroupPreview();
   drawChart(state.resultRows);
-  drawDimensionChart();
 });
 
 els.chart.addEventListener("mousemove", (event) => {
@@ -151,21 +166,18 @@ els.chart.addEventListener("mousemove", (event) => {
 els.dimensionChart.addEventListener("click", (event) => {
   const bar = hitTestDimensionChartBar(event);
   if (!bar) {
-    state.selectedPreview = null;
-    renderPreview(state.scoredRows);
-    drawChart(state.resultRows);
+    state.selectedDimensionPreview = null;
+    renderDimensionPreview();
     drawDimensionChart();
     return;
   }
-  state.selectedPreview = {
-    type: "dimension",
+  state.selectedDimensionPreview = {
     dimension: bar.dimension,
     dimensionLabel: bar.dimensionLabel,
     groupIndex: bar.groupIndex,
     label: bar.label,
   };
-  renderSelectedPreview();
-  drawChart(state.resultRows);
+  renderDimensionPreview();
   drawDimensionChart();
 });
 
@@ -213,8 +225,7 @@ function loadCsv(text) {
   state.baseScoreColumn = baseScoreColumn;
   state.weights = Object.fromEntries(dimensions.map((dimension) => [dimension, 1]));
   state.weightsTouched = false;
-  state.selectedPreview = null;
-  state.previewSort = null;
+  clearPreviewSelections();
   setDefaultDateRange();
 
   if (!state.rows.length) {
@@ -353,7 +364,7 @@ function recalculate() {
   if (!scoredRows.length) {
     state.resultRows = [];
     state.dimensionRows = [];
-    state.selectedPreview = null;
+    clearPreviewSelections();
     renderEmptyResults();
     return;
   }
@@ -379,12 +390,7 @@ function recalculate() {
   renderTable();
   renderDimensionTable();
   drawDimensionChart();
-  if (state.selectedPreview && state.selectedPreview.groupIndex < state.groupCount) {
-    renderSelectedPreview();
-  } else {
-    state.selectedPreview = null;
-    renderPreview(scoredRows);
-  }
+  renderAllPreviews();
   drawChart(state.resultRows);
 }
 
@@ -396,9 +402,36 @@ function renderEmptyResults() {
   els.dimensionHead.innerHTML = "";
   els.dimensionBody.innerHTML = "";
   els.dimensionLegend.innerHTML = "";
-  renderPreview([], { caption: "当前日期区间内没有有效样本" });
+  renderPreview([], { caption: "当前日期区间内没有有效样本" }, "group");
+  renderPreview([], { caption: "当前日期区间内没有有效样本" }, "dimension");
   clearCanvas(els.chart, 360);
   clearCanvas(els.dimensionChart, 400);
+}
+
+function switchAnalysisTab(tabName) {
+  if (!["group", "dimension"].includes(tabName)) return;
+  state.activeTab = tabName;
+  els.tabButtons.forEach((button) => {
+    const isActive = button.dataset.tabTarget === tabName;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+  els.tabPanels.forEach((panel) => {
+    panel.classList.toggle("is-hidden", panel.dataset.tabPanel !== tabName);
+  });
+  window.requestAnimationFrame(() => {
+    if (tabName === "group") {
+      drawChart(state.resultRows);
+    } else {
+      drawDimensionChart();
+    }
+  });
+}
+
+function clearPreviewSelections() {
+  state.selectedGroupPreview = null;
+  state.selectedDimensionPreview = null;
+  state.previewSorts = { group: null, dimension: null };
 }
 
 function clearCanvas(canvas, height) {
@@ -672,7 +705,7 @@ function dimensionColor(index) {
 }
 
 function isSelectedDimensionBar(dimension, groupIndex) {
-  return state.selectedPreview?.type === "dimension" && state.selectedPreview.dimension === dimension && state.selectedPreview.groupIndex === groupIndex;
+  return state.selectedDimensionPreview?.dimension === dimension && state.selectedDimensionPreview.groupIndex === groupIndex;
 }
 
 function hitTestDimensionChartBar(event) {
@@ -699,29 +732,30 @@ function wrapCanvasLabel(ctx, text, x, y, maxWidth) {
   if (line) ctx.fillText(line, x, lineY);
 }
 
-function renderPreview(rows, options = {}) {
+function renderPreview(rows, options = {}, targetName = "group") {
   const {
     limit = 80,
     sortKey = "__adjustedScore",
     sortDirection = "desc",
     caption = "前 80 行，按调整后分数从高到低",
   } = options;
+  const target = els.previews[targetName] || els.previews.group;
   const columns = ["date", "secid", "secname", state.returnColumn, state.baseScoreColumn, "__adjustedScore", ...state.dimensions]
     .filter((column, index, all) => column && all.indexOf(column) === index)
     .filter((column) => column === "__adjustedScore" || state.columns.includes(column));
-  const activeSort = state.previewSort || { column: sortKey, direction: sortDirection };
-  els.previewCaption.textContent = caption;
-  els.previewHead.innerHTML = `<tr>${columns.map((column) => renderSortableHeader(column, activeSort)).join("")}</tr>`;
-  els.previewHead.querySelectorAll("[data-sort-column]").forEach((button) => {
+  const activeSort = state.previewSorts[targetName] || { column: sortKey, direction: sortDirection };
+  target.caption.textContent = caption;
+  target.head.innerHTML = `<tr>${columns.map((column) => renderSortableHeader(column, activeSort)).join("")}</tr>`;
+  target.head.querySelectorAll("[data-sort-column]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.previewSort = {
+      state.previewSorts[targetName] = {
         column: button.dataset.sortColumn,
         direction: button.dataset.sortDirection,
       };
-      renderPreview(rows, { limit, sortKey, sortDirection, caption });
+      renderPreview(rows, { limit, sortKey, sortDirection, caption }, targetName);
     });
   });
-  els.previewBody.innerHTML = sortPreviewRows(rows, activeSort)
+  target.body.innerHTML = sortPreviewRows(rows, activeSort)
     .slice(0, limit)
     .map(
       (row) => `
@@ -776,20 +810,16 @@ function previewSortValue(row, column) {
   return { kind: "text", value: row[column] ?? "" };
 }
 
-function renderSelectedPreview() {
-  const selection = state.selectedPreview;
-  if (!selection) {
-    renderPreview(state.scoredRows);
-    return;
-  }
-  if (selection.type === "dimension") {
-    const dimensionRow = state.dimensionRows.find((row) => row.dimension === selection.dimension);
-    const groupRowsForSelection = dimensionRow?.groups?.[selection.groupIndex] || [];
-    renderPreview(groupRowsForSelection, {
-      limit: groupRowsForSelection.length,
-      sortKey: selection.dimension,
-      caption: `${selection.dimensionLabel} ${selection.label} 组股票，共 ${groupRowsForSelection.length} 行`,
-    });
+function renderAllPreviews() {
+  renderGroupPreview();
+  renderDimensionPreview();
+}
+
+function renderGroupPreview() {
+  const selection = state.selectedGroupPreview;
+  if (!selection || selection.groupIndex >= state.groupCount) {
+    state.selectedGroupPreview = null;
+    renderPreview(state.scoredRows, {}, "group");
     return;
   }
   const groupRowsForSelection = state.groups[selection.series]?.[selection.groupIndex] || [];
@@ -798,7 +828,23 @@ function renderSelectedPreview() {
     limit: groupRowsForSelection.length,
     sortKey: isBase ? "__baseScore" : "__adjustedScore",
     caption: `${isBase ? "原始分" : "调整后"} ${selection.label} 组股票，共 ${groupRowsForSelection.length} 行`,
-  });
+  }, "group");
+}
+
+function renderDimensionPreview() {
+  const selection = state.selectedDimensionPreview;
+  if (!selection || selection.groupIndex >= state.groupCount) {
+    state.selectedDimensionPreview = null;
+    renderPreview(state.scoredRows, {}, "dimension");
+    return;
+  }
+  const dimensionRow = state.dimensionRows.find((row) => row.dimension === selection.dimension);
+  const groupRowsForSelection = dimensionRow?.groups?.[selection.groupIndex] || [];
+  renderPreview(groupRowsForSelection, {
+    limit: groupRowsForSelection.length,
+    sortKey: selection.dimension,
+    caption: `${selection.dimensionLabel} ${selection.label} 组股票，共 ${groupRowsForSelection.length} 行`,
+  }, "dimension");
 }
 
 function drawChart(rows) {
@@ -857,7 +903,7 @@ function drawBar(ctx, x, zeroY, valueY, width, color, selected = false) {
 }
 
 function isSelectedBar(series, groupIndex) {
-  return state.selectedPreview?.series === series && state.selectedPreview?.groupIndex === groupIndex;
+  return state.selectedGroupPreview?.series === series && state.selectedGroupPreview?.groupIndex === groupIndex;
 }
 
 function hitTestChartBar(event) {
@@ -990,8 +1036,13 @@ window.__weightDashboard = {
     weightsTouched: state.weightsTouched,
     groupCount: state.groupCount,
     dateColumn: state.dateColumn,
-    selectedPreview: state.selectedPreview,
-    previewCaption: els.previewCaption.textContent,
+    activeTab: state.activeTab,
+    selectedGroupPreview: state.selectedGroupPreview,
+    selectedDimensionPreview: state.selectedDimensionPreview,
+    previewCaptions: {
+      group: els.previews.group.caption.textContent,
+      dimension: els.previews.dimension.caption.textContent,
+    },
     chartBars: [...state.chartBars],
     dimensionChartBars: [...state.dimensionChartBars],
     resultRows: [...state.resultRows],

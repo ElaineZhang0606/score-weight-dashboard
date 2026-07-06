@@ -123,122 +123,152 @@
         </aside>
 
         <section class="results">
-          <div class="panel chart-panel">
-            <div class="panel-title">
-              <div class="title-label">
-                <h2>分组超额收益对比</h2>
-                <details class="info-popover wide">
-                  <summary aria-label="分组超额收益对比统计口径">i</summary>
-                  <p>先剔除当前收益周期缺失样本，再在每个日期内按分位阈值分 5 组或 10 组，G1 为低分组，最高组为高分组。阈值上的同分样本保留在同一组。</p>
-                </details>
-              </div>
-              <div class="title-actions">
-                <div class="legend">
-                  <span><i class="legend-dot base"></i>原始分</span>
-                  <span><i class="legend-dot adjusted"></i>调整后</span>
+          <div class="tabs" role="tablist" aria-label="分析视图">
+            <button class="is-active" type="button" role="tab" aria-selected="true" aria-controls="groupReturnTab" data-tab-target="group">分组超额收益</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="dimensionReturnTab" data-tab-target="dimension">各维度评分分组收益</button>
+          </div>
+
+          <section class="tab-panel" id="groupReturnTab" role="tabpanel" data-tab-panel="group">
+            <div class="panel chart-panel">
+              <div class="panel-title">
+                <div class="title-label">
+                  <h2>分组超额收益对比</h2>
+                  <details class="info-popover wide">
+                    <summary aria-label="分组超额收益对比统计口径">i</summary>
+                    <p>先剔除当前收益周期缺失样本，再在每个日期内按分位阈值分 5 组或 10 组，G1 为低分组，最高组为高分组。阈值上的同分样本保留在同一组。</p>
+                  </details>
+                </div>
+                <div class="title-actions">
+                  <div class="legend">
+                    <span><i class="legend-dot base"></i>原始分</span>
+                    <span><i class="legend-dot adjusted"></i>调整后</span>
+                  </div>
                 </div>
               </div>
+              <div class="chart-wrap">
+                <canvas id="returnChart" width="1200" height="520"></canvas>
+              </div>
             </div>
-            <div class="chart-wrap">
-              <canvas id="returnChart" width="1200" height="520"></canvas>
-            </div>
-          </div>
 
-          <div class="panel summary-row">
-            <div>
-              <span>原始分 Top-Bottom</span>
-              <strong id="baseSpread">-</strong>
+            <div class="panel summary-row">
+              <div>
+                <span>原始分 Top-Bottom</span>
+                <strong id="baseSpread">-</strong>
+              </div>
+              <div>
+                <span>调整后 Top-Bottom</span>
+                <strong id="adjustedSpread">-</strong>
+              </div>
+              <div>
+                <span>调整后最高组样本数</span>
+                <strong id="topGroupCount">-</strong>
+              </div>
             </div>
-            <div>
-              <span>调整后 Top-Bottom</span>
-              <strong id="adjustedSpread">-</strong>
-            </div>
-            <div>
-              <span>调整后最高组样本数</span>
-              <strong id="topGroupCount">-</strong>
-            </div>
-          </div>
 
-          <div class="panel">
-            <div class="panel-title">
-              <div class="title-label">
-                <h2>分组数据表</h2>
-                <details class="info-popover wide">
-                  <summary aria-label="分组数据表统计口径">i</summary>
-                  <p>展示每个分组的原始分收益、调整后收益、两者差值、样本数和平均分。调整后-原始分为正时表示调整后该组收益更高。</p>
-                </details>
+            <div class="panel">
+              <div class="panel-title">
+                <div class="title-label">
+                  <h2>分组数据表</h2>
+                  <details class="info-popover wide">
+                    <summary aria-label="分组数据表统计口径">i</summary>
+                    <p>展示每个分组的原始分收益、调整后收益、两者差值、样本数和平均分。调整后-原始分为正时表示调整后该组收益更高。</p>
+                  </details>
+                </div>
+                <div class="title-actions">
+                  <button class="ghost-button" type="button" id="downloadTable">导出结果</button>
+                </div>
               </div>
-              <div class="title-actions">
-                <button class="ghost-button" type="button" id="downloadTable">导出结果</button>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>分组</th>
+                      <th>原始分平均超额</th>
+                      <th>调整后平均超额</th>
+                      <th>调整后-原始分</th>
+                      <th>原始样本数</th>
+                      <th>调整后样本数</th>
+                      <th>原始平均分</th>
+                      <th>调整后平均分</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultBody"></tbody>
+                </table>
               </div>
             </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>分组</th>
-                    <th>原始分平均超额</th>
-                    <th>调整后平均超额</th>
-                    <th>调整后-原始分</th>
-                    <th>原始样本数</th>
-                    <th>调整后样本数</th>
-                    <th>原始平均分</th>
-                    <th>调整后平均分</th>
-                  </tr>
-                </thead>
-                <tbody id="resultBody"></tbody>
-              </table>
-            </div>
-          </div>
 
-          <div class="panel">
-            <div class="panel-title">
-              <div class="title-label">
-                <h2>各维度评分分组收益</h2>
-                <details class="info-popover wide">
-                  <summary aria-label="各维度评分分组收益统计口径">i</summary>
-                  <p>每个维度独立分组，口径同主图：每个日期内按该维度分数做分位分组，G1 为低分组，最高组为高分组。该看板不受权重调整影响。</p>
-                </details>
+            <div class="panel">
+              <div class="panel-title">
+                <div class="title-label">
+                  <h2>明细预览</h2>
+                  <details class="info-popover wide">
+                    <summary aria-label="分组超额收益明细预览统计口径">i</summary>
+                    <p>默认展示当前日期和收益周期筛选后的前 80 行，按调整后分数倒序。点击分组超额收益柱子后展示对应组内股票；点击表头可按列正序或倒序排序。</p>
+                  </details>
+                </div>
+                <div class="title-actions">
+                  <span class="muted" id="groupPreviewCaption">前 80 行，按调整后分数从高到低</span>
+                </div>
               </div>
-              <div class="title-actions">
-                <div class="legend compact-legend" id="dimensionLegend"></div>
+              <div class="table-wrap compact">
+                <table>
+                  <thead id="groupPreviewHead"></thead>
+                  <tbody id="groupPreviewBody"></tbody>
+                </table>
               </div>
             </div>
-            <div class="chart-wrap dimension-chart-wrap">
-              <canvas id="dimensionChart" width="1200" height="560"></canvas>
-            </div>
-            <div class="table-wrap dimension-wrap">
-              <table>
-                <thead id="dimensionHead"></thead>
-                <tbody id="dimensionBody"></tbody>
-              </table>
-            </div>
-          </div>
+          </section>
 
-          <div class="panel">
-            <div class="panel-title">
-              <div class="title-label">
-                <h2>明细预览</h2>
-                <details class="info-popover wide">
-                  <summary aria-label="明细预览统计口径">i</summary>
-                  <p>默认展示当前日期和收益周期筛选后的前 80 行，按调整后分数倒序。点击图表柱子后展示对应组内股票；点击表头可按列正序或倒序排序。</p>
-                </details>
+          <section class="tab-panel is-hidden" id="dimensionReturnTab" role="tabpanel" data-tab-panel="dimension">
+            <div class="panel">
+              <div class="panel-title">
+                <div class="title-label">
+                  <h2>各维度评分分组收益</h2>
+                  <details class="info-popover wide">
+                    <summary aria-label="各维度评分分组收益统计口径">i</summary>
+                    <p>每个维度独立分组，口径同主图：每个日期内按该维度分数做分位分组，G1 为低分组，最高组为高分组。该看板不受权重调整影响。</p>
+                  </details>
+                </div>
+                <div class="title-actions">
+                  <div class="legend compact-legend" id="dimensionLegend"></div>
+                </div>
               </div>
-              <div class="title-actions">
-                <span class="muted" id="previewCaption">前 80 行，按调整后分数从高到低</span>
+              <div class="chart-wrap dimension-chart-wrap">
+                <canvas id="dimensionChart" width="1200" height="560"></canvas>
+              </div>
+              <div class="table-wrap dimension-wrap">
+                <table>
+                  <thead id="dimensionHead"></thead>
+                  <tbody id="dimensionBody"></tbody>
+                </table>
               </div>
             </div>
-            <div class="table-wrap compact">
-              <table>
-                <thead id="previewHead"></thead>
-                <tbody id="previewBody"></tbody>
-              </table>
+
+            <div class="panel">
+              <div class="panel-title">
+                <div class="title-label">
+                  <h2>明细预览</h2>
+                  <details class="info-popover wide">
+                    <summary aria-label="各维度评分分组收益明细预览统计口径">i</summary>
+                    <p>默认展示当前日期和收益周期筛选后的前 80 行，按调整后分数倒序。点击各维度评分分组收益柱子后展示对应维度和分组内股票；点击表头可按列正序或倒序排序。</p>
+                  </details>
+                </div>
+                <div class="title-actions">
+                  <span class="muted" id="dimensionPreviewCaption">前 80 行，按调整后分数从高到低</span>
+                </div>
+              </div>
+              <div class="table-wrap compact">
+                <table>
+                  <thead id="dimensionPreviewHead"></thead>
+                  <tbody id="dimensionPreviewBody"></tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          </section>
         </section>
       </section>
     </main>
 
-    <script src="./dashboard.js?v=20260703r"></script>
+    <script src="./dashboard.js?v=20260706a"></script>
   </body>
 </html>

@@ -140,6 +140,44 @@ h2 {
   top: 16px;
 }
 
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.tabs button {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.tabs button.is-active {
+  color: #fff;
+  background: var(--green);
+}
+
+.tab-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.tab-panel.is-hidden {
+  display: none;
+}
+
 .panel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -562,6 +600,12 @@ tbody tr:hover {
   }
 
   .summary-row {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    display: grid;
+    width: 100%;
     grid-template-columns: 1fr;
   }
 }
