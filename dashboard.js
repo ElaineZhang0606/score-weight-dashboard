@@ -92,7 +92,8 @@ els.resetWeights.addEventListener("click", () => {
   state.dimensions.forEach((dimension) => {
     state.weights[dimension] = 1;
   });
-  state.weightsTouched = true;
+  state.weightsTouched = false;
+  clearPreviewSelections();
   renderWeights();
   recalculate();
 });
