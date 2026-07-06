@@ -438,7 +438,7 @@ function clearCanvas(canvas, height) {
   const ctx = canvas.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = Math.max(900, Math.floor(rect.width * dpr));
+  canvas.width = Math.max(320, Math.floor(rect.width * dpr));
   canvas.height = Math.floor(height * dpr);
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
@@ -615,7 +615,7 @@ function drawDimensionChart() {
   const ctx = canvas.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = Math.max(1040, Math.floor(rect.width * dpr));
+  canvas.width = Math.max(320, Math.floor(rect.width * dpr));
   canvas.height = Math.floor(400 * dpr);
   ctx.scale(dpr, dpr);
 
@@ -852,7 +852,7 @@ function drawChart(rows) {
   const ctx = canvas.getContext("2d");
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = Math.max(900, Math.floor(rect.width * dpr));
+  canvas.width = Math.max(320, Math.floor(rect.width * dpr));
   canvas.height = Math.floor(360 * dpr);
   ctx.scale(dpr, dpr);
 
