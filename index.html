@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>研报评分维度和权重看板</title>
-    <link rel="stylesheet" href="./styles.css?v=20260706f" />
+    <link rel="stylesheet" href="./styles.css?v=20260729c" />
   </head>
   <body>
     <main class="app-shell">
@@ -13,10 +13,13 @@
           <h1>研报评分维度和权重看板</h1>
           <p>上传含维度分数与多周期超额收益的 CSV，切换收益周期、筛选日期，并比较原始分组与新权重分组表现。</p>
         </div>
-        <label class="upload-button" for="csvInput">
-          <span>上传 CSV</span>
-          <input id="csvInput" type="file" accept=".csv,text/csv" />
-        </label>
+        <div class="topbar-actions">
+          <button class="sample-button" type="button" id="loadSample">加载示例数据</button>
+          <label class="upload-button" for="csvInput">
+            <span>上传 CSV</span>
+            <input id="csvInput" type="file" accept=".csv,text/csv" />
+          </label>
+        </div>
       </section>
 
       <section class="status-band" id="emptyState">
@@ -269,6 +272,6 @@
       </section>
     </main>
 
-    <script src="./dashboard.js?v=20260729a"></script>
+    <script src="./dashboard.js?v=20260729c"></script>
   </body>
 </html>

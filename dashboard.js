@@ -29,6 +29,7 @@ const state = {
 
 const els = {
   csvInput: document.getElementById("csvInput"),
+  loadSample: document.getElementById("loadSample"),
   emptyState: document.getElementById("emptyState"),
   dashboard: document.getElementById("dashboard"),
   rowCount: document.getElementById("rowCount"),
@@ -74,6 +75,23 @@ els.csvInput.addEventListener("change", async (event) => {
   loadCsv(text, file.name);
 });
 
+els.loadSample.addEventListener("click", async () => {
+  const originalText = els.loadSample.textContent;
+  els.loadSample.disabled = true;
+  els.loadSample.textContent = "加载中...";
+  try {
+    const response = await fetch("./sample-data/dim6_scored_cleaned_5d_excess.csv?v=20260729c");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    loadCsv(text);
+  } catch (error) {
+    showMessage(`示例数据加载失败：${error.message}`);
+  } finally {
+    els.loadSample.disabled = false;
+    els.loadSample.textContent = originalText;
+  }
+});
+
 document.querySelectorAll("[data-groups]").forEach((button) => {
   button.addEventListener("click", () => {
     document.querySelectorAll("[data-groups]").forEach((item) => item.classList.remove("is-active"));
@@ -117,6 +135,8 @@ els.resetDateRange.addEventListener("click", () => {
 
 els.returnSelector.addEventListener("change", () => {
   state.returnColumn = els.returnSelector.value;
+  setDefaultDateRange();
+  renderDateControls();
   clearPreviewSelections();
   renderMeta();
   recalculate();
@@ -284,14 +304,16 @@ function detectDateColumn(columns) {
     column,
     key: normalizeColumnKey(column),
   }));
-  const preferredKeys = ["tradedate", "tradingdate", "t1date", "date", "reportdate"];
+  const preferredKeys = ["tradedate", "tradingdate", "date", "reportdate", "t1date"];
   return preferredKeys
     .map((key) => normalizedColumns.find((item) => item.key === key)?.column)
     .find(Boolean) || "";
 }
 
 function setDefaultDateRange() {
-  const dates = state.rows.map((row) => row.__dateValue).filter(Boolean).sort();
+  const rowsWithReturn = state.rows.filter((row) => Number.isFinite(parseNumber(row[state.returnColumn])));
+  const sourceRows = rowsWithReturn.length ? rowsWithReturn : state.rows;
+  const dates = sourceRows.map((row) => row.__dateValue).filter(Boolean).sort();
   state.dateMin = dates[0] || "";
   state.dateMax = dates[dates.length - 1] || "";
   state.filterStart = state.dateMin;

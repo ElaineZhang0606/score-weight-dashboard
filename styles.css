@@ -69,7 +69,15 @@ h2 {
   font-size: 14px;
 }
 
+.topbar-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .upload-button,
+.sample-button,
 .ghost-button,
 .segmented button {
   border: 1px solid var(--line);
@@ -77,6 +85,15 @@ h2 {
   background: var(--panel);
   color: var(--ink);
   cursor: pointer;
+}
+
+.sample-button {
+  min-height: 42px;
+  padding: 0 16px;
+  color: var(--blue);
+  border-color: #b8ccf8;
+  background: #f5f8ff;
+  font-weight: 650;
 }
 
 .upload-button {
@@ -616,6 +633,10 @@ tbody tr:hover {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .topbar-actions {
+    justify-content: flex-start;
   }
 
   .dashboard {
