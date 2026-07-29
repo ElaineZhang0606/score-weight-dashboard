@@ -212,12 +212,15 @@ function loadCsv(text) {
 
   state.columns = columns;
   state.rows = rows
-    .map((row) => ({
-      ...row,
-      __dateKey: dateColumn ? String(row[dateColumn] ?? "").trim() : "__all__",
-      __dateValue: dateColumn ? parseDateValue(row[dateColumn]) : "",
-      __baseScore: parseNumber(row[baseScoreColumn]),
-    }))
+    .map((row) => {
+      const dateValue = dateColumn ? parseDateValue(row[dateColumn]) : "";
+      return {
+        ...row,
+        __dateKey: dateValue || (dateColumn ? String(row[dateColumn] ?? "").trim() : "__all__"),
+        __dateValue: dateValue,
+        __baseScore: parseNumber(row[baseScoreColumn]),
+      };
+    })
     .filter((row) => Number.isFinite(row.__baseScore));
   state.dimensions = dimensions;
   state.dateColumn = dateColumn;
@@ -272,8 +275,19 @@ function returnHorizon(column) {
   return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
 }
 
+function normalizeColumnKey(column) {
+  return String(column || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
 function detectDateColumn(columns) {
-  return ["date", "trade_date", "report_date", "T1_date"].find((column) => columns.includes(column)) || "";
+  const normalizedColumns = columns.map((column) => ({
+    column,
+    key: normalizeColumnKey(column),
+  }));
+  const preferredKeys = ["tradedate", "tradingdate", "t1date", "date", "reportdate"];
+  return preferredKeys
+    .map((key) => normalizedColumns.find((item) => item.key === key)?.column)
+    .find(Boolean) || "";
 }
 
 function setDefaultDateRange() {
@@ -741,7 +755,7 @@ function renderPreview(rows, options = {}, targetName = "group") {
     caption = "前 80 行，按调整后分数从高到低",
   } = options;
   const target = els.previews[targetName] || els.previews.group;
-  const columns = ["date", "secid", "secname", state.returnColumn, state.baseScoreColumn, "__adjustedScore", ...state.dimensions]
+  const columns = [state.dateColumn || "date", "secid", "secname", state.returnColumn, state.baseScoreColumn, "__adjustedScore", ...state.dimensions]
     .filter((column, index, all) => column && all.indexOf(column) === index)
     .filter((column) => column === "__adjustedScore" || state.columns.includes(column));
   const activeSort = state.previewSorts[targetName] || { column: sortKey, direction: sortDirection };
